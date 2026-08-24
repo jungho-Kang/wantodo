@@ -65,14 +65,13 @@ function LoadingBar() {
  * 실제 화면으로 전환). 디자인 시안의 하단 선 자리에는 실제로 움직이는
  * 로딩 바를 겹쳐 그린다.
  */
-function CustomSplash({ onReady }: { onReady: () => void }) {
+function CustomSplash() {
   return (
     <View style={{ flex: 1 }}>
       <Image
         source={require('../assets/splash-screen.png')}
         style={{ width: '100%', height: '100%' }}
         resizeMode="cover"
-        onLoadEnd={onReady}
       />
       <LoadingBar />
     </View>
@@ -93,6 +92,19 @@ export default function RootLayout() {
     getDb();
   }, []);
 
+  // 네이티브 스플래시는 CustomSplash가 첫 프레임을 그릴 기회를 준 뒤 곧바로
+  // 숨긴다 - 예전에는 CustomSplash의 <Image onLoadEnd>에서만 숨겼는데,
+  // 폰트 로딩(fontsLoaded)이 이미지 로딩보다 먼저 끝나버리면(느린 tunnel
+  // 연결 등에서 실제로 발생) CustomSplash가 onLoadEnd 호출 전에 언마운트돼
+  // hideAsync()가 영영 호출되지 않고 네이티브 스플래시가 무한히 떠있는
+  // 버그가 있었다 - 마운트 시점에 한 번만, 무조건 호출하도록 분리함.
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      SplashScreen.hideAsync();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   // Settings > General 토글이 바뀔 때마다(+ 영속화 복원 후 최초 1회) 실제
   // 예약된 알림과 동기화한다.
   useEffect(() => {
@@ -100,7 +112,7 @@ export default function RootLayout() {
   }, [weeklyReminderEnabled, eveningReminderEnabled]);
 
   if (!fontsLoaded) {
-    return <CustomSplash onReady={() => SplashScreen.hideAsync()} />;
+    return <CustomSplash />;
   }
 
   return (

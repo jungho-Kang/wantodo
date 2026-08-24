@@ -109,21 +109,22 @@ function CompactDayTab({
         gap: 4,
       }}
     >
-      {isActive && <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: textColor }} />}
+      {isActive && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: textColor }} />
+          {!!progress && progress.total > 0 && (
+            <Text style={{ fontSize: 9, color: textColor, opacity: 0.8 }}>
+              {progress.completed}/{progress.total}
+            </Text>
+          )}
+        </View>
+      )}
       <Text
         style={{ fontSize: 13, fontWeight: isActive ? 'bold' : '600', color: textColor, transform: [{ rotate: '-90deg' }] }}
         numberOfLines={1}
       >
         {label}
       </Text>
-      {isActive && !!progress && progress.total > 0 && (
-        <Text
-          style={{ fontSize: 9, color: textColor, opacity: 0.8, transform: [{ rotate: '-90deg' }] }}
-          numberOfLines={1}
-        >
-          {progress.completed}/{progress.total}
-        </Text>
-      )}
     </Pressable>
   );
 }

@@ -19,6 +19,8 @@ export type AppearanceMode = 'SYSTEM' | 'LIGHT' | 'DARK';
 export interface ColorPalette {
   name: string;
   colors: string[];
+  /** Custom palette에서 별도로 고르는 강조색. Preset은 없으면 colors[0]을 사용한다. */
+  accentColor?: string;
 }
 
 export const presetPalettes: ColorPalette[] = [

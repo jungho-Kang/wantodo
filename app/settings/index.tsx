@@ -7,50 +7,56 @@
  * - APP: General / Design / Wishlist / Changelog / About this app
  * - LEGAL: Imprint / Privacy / Terms of Use
  */
-import { ScrollView, Text, View, Pressable } from 'react-native';
+import { ScrollView, View, Pressable } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Link } from 'expo-router';
 import { useSettingsStore } from '../../src/store/settingsStore';
-import { AccentTeal } from '../../src/theme/colors';
+import { useActivePalette } from '../../src/theme/useActivePalette';
+import { useThemeColors } from '../../src/theme/useThemeColors';
 
 function SettingsCard({ title, children }: { title: string; children: React.ReactNode }) {
+  const theme = useThemeColors();
   return (
     <View style={{ marginTop: 24, paddingHorizontal: 16 }}>
-      <Text style={{ fontSize: 12, color: '#999', marginBottom: 8 }}>{title}</Text>
-      <View style={{ backgroundColor: '#F7F5F9', borderRadius: 12 }}>{children}</View>
+      <Text style={{ fontSize: 12, color: theme.textTertiary, marginBottom: 8 }}>{title}</Text>
+      <View style={{ backgroundColor: theme.surface, borderRadius: 12 }}>{children}</View>
     </View>
   );
 }
 
 function NavRow({ label, href }: { label: string; href: string }) {
+  const theme = useThemeColors();
   return (
     <Link href={href as any} asChild>
       <Pressable style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 14 }}>
         <Text>{label}</Text>
-        <Text style={{ color: '#999' }}>{'>'}</Text>
+        <Text style={{ color: theme.textTertiary }}>{'>'}</Text>
       </Pressable>
     </Link>
   );
 }
 
 export default function SettingsMainScreen() {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const cloudSyncEnabled = useSettingsStore((s) => s.cloudSyncEnabled);
   const userName = useSettingsStore((s) => s.userName);
   const initial = userName.trim().charAt(0).toUpperCase() || '?';
   const insets = useSafeAreaInsets();
 
   return (
-    <ScrollView style={{ flex: 1, backgroundColor: '#fff' }} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
+    <ScrollView style={{ flex: 1, backgroundColor: theme.background }} contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}>
       <SettingsCard title="ACCOUNT">
         <Link href="/settings/account" asChild>
           <Pressable style={{ flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 }}>
-            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: AccentTeal, alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: accentColor, alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ color: '#fff', fontWeight: 'bold' }}>{initial}</Text>
             </View>
             {cloudSyncEnabled ? (
               <View>
                 <Text style={{ fontWeight: 'bold' }}>{userName || 'Account'}</Text>
-                <Text style={{ color: AccentTeal, fontSize: 12 }}>Synced</Text>
+                <Text style={{ color: accentColor, fontSize: 12 }}>Synced</Text>
               </View>
             ) : (
               // [UNKNOWN] 로그인 전 정확한 UI 미확인 - "Tap to sign in" 안내만 표시

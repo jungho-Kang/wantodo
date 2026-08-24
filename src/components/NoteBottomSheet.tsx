@@ -5,8 +5,11 @@
  * Edit 모드 진입 시 텍스트 영역에 얇은 흰색 Border.
  */
 import { useEffect, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
+import { Text } from './Text';
 import { BottomSheet } from './BottomSheet';
+import { useThemeColors } from '../theme/useThemeColors';
+import { useActivePalette } from '../theme/useActivePalette';
 
 interface Props {
   visible: boolean;
@@ -17,6 +20,8 @@ interface Props {
 }
 
 export function NoteBottomSheet({ visible, taskTitle, initialNote, onSave, onDismiss }: Props) {
+  const theme = useThemeColors();
+  const { accentColor } = useActivePalette();
   const [isEditing, setIsEditing] = useState(false);
   const [noteText, setNoteText] = useState(initialNote);
 
@@ -38,26 +43,28 @@ export function NoteBottomSheet({ visible, taskTitle, initialNote, onSave, onDis
               setIsEditing(!isEditing);
             }}
           >
-            <Text style={{ color: '#2F5D50', fontWeight: '600' }}>{isEditing ? 'Save' : 'Edit'}</Text>
+            <Text style={{ color: accentColor, fontWeight: '600' }}>{isEditing ? 'Save' : 'Edit'}</Text>
           </Pressable>
         </View>
 
-        <View style={{ height: 1, backgroundColor: '#eee', marginVertical: 12 }} />
+        <View style={{ height: 1, backgroundColor: theme.divider, marginVertical: 12 }} />
 
         {isEditing ? (
           <TextInput
             value={noteText}
             onChangeText={setNoteText}
             placeholder="Add note..."
+            placeholderTextColor={theme.textTertiary}
             multiline
             style={{
               minHeight: 120,
               borderWidth: 1,
-              borderColor: '#fff',
-              backgroundColor: '#fafafa',
+              borderColor: theme.border,
+              backgroundColor: theme.surface,
               borderRadius: 8,
               padding: 12,
               textAlignVertical: 'top',
+              color: theme.text,
             }}
           />
         ) : (

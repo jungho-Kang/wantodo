@@ -12,13 +12,15 @@
  *   HeaderSection/WeekNavigation/ListView 의 Backlog pill·요일 행과 상호작용)
  */
 import { useCallback, useRef, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useDragStore, type DropTarget } from '../../store/dragStore';
 import type { Task } from '../../db/schema';
-import { LightSurfaceCard, RightSwipeArrow } from '../../theme/colors';
+import { useActivePalette } from '../../theme/useActivePalette';
+import { useThemeColors } from '../../theme/useThemeColors';
 
 export type TodoCardVariant = 'WEEK' | 'LIST';
 
@@ -47,6 +49,7 @@ export function TodoCard({
   const offsetX = useSharedValue(0);
   const [isMoveMode, setIsMoveMode] = useState(false);
   const cardSizeRef = useRef({ width: 0, height: 0 });
+  const { accentColor } = useActivePalette();
 
   const startDrag = useDragStore((s) => s.startDrag);
   const updatePosition = useDragStore((s) => s.updatePosition);
@@ -124,12 +127,22 @@ export function TodoCard({
     >
       <Animated.View
         style={[
-          { position: 'absolute', left: 8, top: 0, bottom: 0, justifyContent: 'center' },
+          {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            borderRadius: 14,
+            backgroundColor: accentColor,
+            justifyContent: 'center',
+            paddingLeft: 16,
+          },
           arrowStyle,
         ]}
         pointerEvents="none"
       >
-        <MaterialIcons name="arrow-forward" size={22} color={RightSwipeArrow} />
+        <MaterialIcons name="arrow-forward" size={22} color="#fff" />
       </Animated.View>
 
       <GestureDetector gesture={gesture}>
@@ -159,6 +172,8 @@ export function TodoCardBody({
   onClick?: (() => void) | null;
   style?: object;
 }) {
+  const colors = useThemeColors();
+  const { accentColor } = useActivePalette();
   const checkedIcon = variant === 'LIST' ? 'check-circle' : 'check-box';
   const uncheckedIcon = variant === 'LIST' ? 'radio-button-unchecked' : 'check-box-outline-blank';
 
@@ -169,7 +184,7 @@ export function TodoCardBody({
           flexDirection: 'row',
           alignItems: 'center',
           borderRadius: 14,
-          backgroundColor: LightSurfaceCard,
+          backgroundColor: colors.surface,
           paddingHorizontal: 16,
           paddingVertical: 13,
         },
@@ -177,7 +192,11 @@ export function TodoCardBody({
       ]}
     >
       <Pressable onPress={onToggleComplete} hitSlop={8}>
-        <MaterialIcons name={task.isCompleted ? checkedIcon : uncheckedIcon} size={24} />
+        <MaterialIcons
+          name={task.isCompleted ? checkedIcon : uncheckedIcon}
+          size={24}
+          color={task.isCompleted ? accentColor : colors.textSecondary}
+        />
       </Pressable>
 
       <View style={{ width: 12 }} />
@@ -187,25 +206,25 @@ export function TodoCardBody({
           style={{
             fontSize: 16,
             textDecorationLine: task.isCompleted ? 'line-through' : 'none',
-            color: task.isCompleted ? 'rgba(0,0,0,0.5)' : '#000',
+            color: task.isCompleted ? colors.textSecondary : colors.text,
           }}
         >
           {task.title}
         </Text>
         {!!task.note?.trim() && (
-          <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.6)' }} numberOfLines={2}>
+          <Text style={{ fontSize: 12, color: colors.textSecondary }} numberOfLines={2}>
             {task.note}
           </Text>
         )}
       </View>
 
-      {task.isTopTask && <MaterialIcons name="keyboard-arrow-up" size={20} />}
-      {task.isRoutine && <MaterialIcons name="loop" size={20} />}
+      {task.isTopTask && <MaterialIcons name="keyboard-arrow-up" size={20} color={colors.textSecondary} />}
+      {task.isRoutine && <MaterialIcons name="loop" size={20} color={colors.textSecondary} />}
 
       {variant === 'LIST' && (
         <>
           <View style={{ width: 8 }} />
-          <MaterialIcons name="drag-handle" size={20} color="rgba(0,0,0,0.4)" />
+          <MaterialIcons name="drag-handle" size={20} color={colors.textTertiary} />
         </>
       )}
     </View>

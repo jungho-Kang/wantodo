@@ -8,10 +8,12 @@
  * FAB는 진입점만 두고 등록 폼은 다음 단계 TODO.
  */
 import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
-import { AccentTeal } from '../../src/theme/colors';
+import { useActivePalette } from '../../src/theme/useActivePalette';
+import { useThemeColors } from '../../src/theme/useThemeColors';
 
 type WishlistTab = 'PENDING' | 'PLANNED' | 'COMPLETED';
 const TABS: { key: WishlistTab; label: string }[] = [
@@ -21,6 +23,8 @@ const TABS: { key: WishlistTab; label: string }[] = [
 ];
 
 export default function WishlistScreen() {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const insets = useSafeAreaInsets();
   const [tab, setTab] = useState<WishlistTab>('PENDING');
   // [UNKNOWN] 실제 요청 데이터는 서버 기반일 것으로 추정되나 확인 불가.
@@ -28,7 +32,7 @@ export default function WishlistScreen() {
   const items: never[] = [];
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 20, paddingTop: 12 }}>
         {TABS.map((t) => (
           <Pressable
@@ -38,10 +42,10 @@ export default function WishlistScreen() {
               borderRadius: 50,
               paddingHorizontal: 16,
               paddingVertical: 8,
-              backgroundColor: tab === t.key ? AccentTeal : '#F7F5F9',
+              backgroundColor: tab === t.key ? accentColor : theme.surface,
             }}
           >
-            <Text style={{ color: tab === t.key ? '#fff' : '#000' }}>{t.label}</Text>
+            <Text style={{ color: tab === t.key ? '#fff' : theme.text }}>{t.label}</Text>
           </Pressable>
         ))}
       </View>
@@ -50,7 +54,7 @@ export default function WishlistScreen() {
 
       {items.length === 0 ? (
         <View style={{ alignItems: 'center', paddingVertical: 48 }}>
-          <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.5)' }}>No feature requests</Text>
+          <Text style={{ fontSize: 14, color: theme.textSecondary }}>No feature requests</Text>
         </View>
       ) : null}
 
@@ -65,7 +69,7 @@ export default function WishlistScreen() {
           width: 56,
           height: 56,
           borderRadius: 28,
-          backgroundColor: AccentTeal,
+          backgroundColor: accentColor,
           alignItems: 'center',
           justifyContent: 'center',
           elevation: 4,

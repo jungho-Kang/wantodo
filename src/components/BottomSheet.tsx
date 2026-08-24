@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useThemeColors } from '../theme/useThemeColors';
 
 export function BottomSheet({
   visible,
@@ -17,6 +18,7 @@ export function BottomSheet({
   onDismiss: () => void;
   children: React.ReactNode;
 }) {
+  const { surfaceElevated } = useThemeColors();
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -34,7 +36,7 @@ export function BottomSheet({
         <Animated.View style={[styles.backdrop, backdropStyle]}>
           <Pressable style={StyleSheet.absoluteFill} onPress={onDismiss} />
         </Animated.View>
-        <Animated.View style={[styles.sheet, sheetStyle]}>
+        <Animated.View style={[styles.sheet, { backgroundColor: surfaceElevated }, sheetStyle]}>
           <SafeAreaView edges={['bottom']}>{children}</SafeAreaView>
         </Animated.View>
       </View>
@@ -46,7 +48,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'flex-end' },
   backdrop: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#000' },
   sheet: {
-    backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
   },

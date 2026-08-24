@@ -16,8 +16,8 @@
  *   OS 캘린더 앱의 "일정 추가" 화면을 띄움 (원본 util/CalendarEventHelper.kt의
  *   Intent.ACTION_INSERT와 동일한 방식 - 종일 이벤트, 앱 자체 캘린더 권한 불필요)
  */
-import { useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { BackHandler, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useFocusEffect } from 'expo-router';
 import { addDays } from 'date-fns';
@@ -30,6 +30,7 @@ import * as weeklyResetPrefs from '../src/db/weeklyResetPrefs';
 import type { Task } from '../src/db/schema';
 import { fromISODate } from '../src/lib/dates';
 
+import { useThemeColors } from '../src/theme/useThemeColors';
 import { HeaderSection } from '../src/features/home/HeaderSection';
 import { WeekNavigation } from '../src/features/home/WeekNavigation';
 import { ListView } from '../src/features/home/ListView';
@@ -61,6 +62,7 @@ function greetingText(): string {
 }
 
 export default function HomeScreen() {
+  const theme = useThemeColors();
   const {
     selectedDate,
     viewMode,
@@ -89,6 +91,16 @@ export default function HomeScreen() {
 
   const [activeSheet, setActiveSheet] = useState<ActiveSheet>(null);
 
+  // Week Navigation의 요일별 "완료/전체" 표시용 (2번 섹션 참고)
+  const progressByDate = useMemo(() => {
+    const result: Record<string, { completed: number; total: number }> = {};
+    for (const date of weekDates) {
+      const tasks = tasksByDateForWeek[date] ?? [];
+      result[date] = { completed: tasks.filter((t) => t.isCompleted).length, total: tasks.length };
+    }
+    return result;
+  }, [weekDates, tasksByDateForWeek]);
+
   // Focus Session 등 모달 화면에서 돌아올 때도 최신 상태를 반영한다
   // (원본은 Room의 Flow로 자동 반영되지만, RN은 재조회 방식이라 필요 - 3번 섹션 참고)
   useFocusEffect(
@@ -97,6 +109,21 @@ export default function HomeScreen() {
       refreshWeek();
     }, [selectedDate])
   );
+
+  // List View는 화면 이동이 아니라 같은 화면 안의 상태 전환이라, 이 화면은
+  // 항상 네비게이션 스택의 root다. List View에서 뒤로가기를 누르면
+  // (안드로이드 기본 동작대로 그냥 앱이 꺼지는 대신) Week View로 먼저
+  // 돌아오게 한다 - 사용자 피드백으로 추가된, 원본에 없던 동작.
+  useEffect(() => {
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (viewMode === 'LIST') {
+        toggleViewMode();
+        return true;
+      }
+      return false;
+    });
+    return () => subscription.remove();
+  }, [viewMode, toggleViewMode]);
 
   // Weekly Reset: 앱 진입 시 1회만 지난 주 미완료 Task 존재 여부 확인.
   useEffect(() => {
@@ -114,7 +141,7 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#F3F1F5' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
         <HeaderSection
           greeting={greetingText()}
           userName={userName}
@@ -127,7 +154,13 @@ export default function HomeScreen() {
 
         <View style={{ flex: 1, flexDirection: 'row' }}>
           {viewMode === 'WEEK' && (
-            <WeekNavigation weekDates={weekDates} selectedDate={selectedDate} showWeekend onDaySelected={selectDate} />
+            <WeekNavigation
+              weekDates={weekDates}
+              selectedDate={selectedDate}
+              progressByDate={progressByDate}
+              showWeekend
+              onDaySelected={selectDate}
+            />
           )}
 
           <View style={{ flex: 1 }}>

@@ -16,10 +16,6 @@ export const LightBackground = '#F3F1F5'; // Off-white
 export const LightSurface = '#FFFFFF';
 export const LightSurfaceCard = '#F7F5F9';
 
-// Right Swipe 화살표 색 - [CONFIRMED] Teal 아님, 옅은 노란/올리브 계열
-// 실측 RGB 약 (240, 236, 220) - Master Spec 5.1절 참고
-export const RightSwipeArrow = '#F0ECDC';
-
 // Delete / Red UI
 export const DeleteRed = '#E0453C';
 
@@ -28,7 +24,9 @@ export const AccentColor = AccentTeal;
 
 // Dark Mode - [ESTIMATED], 아직 실측 안 됨
 export const DarkBackground = '#15161B';
+export const DarkSurface = '#1D1E24';
 export const DarkSurfaceCard = '#23252C';
+export const DarkSurfaceElevated = '#2A2C34';
 
 export const LightColors = {
   primary: AccentTeal,
@@ -52,4 +50,18 @@ export function withAlpha(hex: string, alpha: number): string {
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+/**
+ * 임의의 '#RRGGBB' 배경색 위에서 읽기 좋은 텍스트 색(검정/흰색)을 고른다.
+ * Design에서 팔레트를 바꾸면 요일 탭 배경색도 같이 바뀌는데, 앱 자체의
+ * 라이트/다크 모드와 무관하게 그 배경색 자체의 밝기에 맞춰 글자색을
+ * 정해야 항상 읽힌다 (예: Monochrom 팔레트의 어두운 요일 칸).
+ */
+export function getContrastTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  const yiq = (r * 299 + g * 587 + b * 114) / 1000;
+  return yiq >= 128 ? '#000000' : '#FFFFFF';
 }

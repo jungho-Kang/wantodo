@@ -15,12 +15,14 @@
  * 없던 RN 쪽 안전장치 - MIGRATION.md 8번 섹션 참고).
  */
 import { useEffect, useRef } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { format } from 'date-fns';
 import { useDragStore } from '../../store/dragStore';
 import { fromISODate } from '../../lib/dates';
 import type { Task } from '../../db/schema';
-import { AccentTeal } from '../../theme/colors';
+import { useActivePalette } from '../../theme/useActivePalette';
+import { useThemeColors } from '../../theme/useThemeColors';
 import { TodoCard } from './TodoCard';
 
 export function ListView({
@@ -83,6 +85,8 @@ function DateSectionHeader({ date }: { date: string }) {
   const hoveredTarget = useDragStore((s) => s.hoveredTarget);
   const target = { type: 'day' as const, date };
   const isHovered = isDragging && hoveredTarget?.type === 'day' && hoveredTarget.date === date;
+  const { accentColor } = useActivePalette();
+  const colors = useThemeColors();
 
   const measure = () => {
     if (!isDragging) return;
@@ -106,12 +110,12 @@ function DateSectionHeader({ date }: { date: string }) {
         gap: 8,
         borderRadius: 8,
         borderWidth: isHovered ? 2 : 0,
-        borderColor: AccentTeal,
+        borderColor: accentColor,
         paddingVertical: 8,
       }}
     >
       <Text style={{ fontSize: 14 }}>{format(fromISODate(date), 'EEEE, d. MMMM')}</Text>
-      <View style={{ flex: 1, height: 1, backgroundColor: '#eee' }} />
+      <View style={{ flex: 1, height: 1, backgroundColor: colors.divider }} />
     </View>
   );
 }

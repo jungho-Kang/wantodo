@@ -6,19 +6,24 @@
  * 영상에서 여러 달치가 이어지는 것을 확인해 [ESTIMATED]로 20주 넉넉히 잡았다.
  */
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { useFocusEffect } from 'expo-router';
 import { MaterialIcons } from '@expo/vector-icons';
 import { addDays, endOfWeek, startOfWeek, subWeeks } from 'date-fns';
 import * as taskQueries from '../../db/taskQueries';
 import type { Task } from '../../db/schema';
 import { fromISODate, toISODate, todayISODate } from '../../lib/dates';
-import { AccentColor, withAlpha } from '../../theme/colors';
+import { withAlpha } from '../../theme/colors';
+import { useActivePalette } from '../../theme/useActivePalette';
+import { useThemeColors } from '../../theme/useThemeColors';
 
 const HEATMAP_WEEKS = 20;
 const DAY_LABELS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
 
 export function ActivityTab() {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const [tasksInRange, setTasksInRange] = useState<Task[]>([]);
 
   const today = todayISODate();
@@ -71,7 +76,7 @@ export function ActivityTab() {
       <View style={{ flexDirection: 'row', paddingHorizontal: 16, gap: 6 }}>
         <View style={{ alignItems: 'flex-end', gap: 3 }}>
           {DAY_LABELS.map((label) => (
-            <Text key={label} style={{ fontSize: 10, height: 14, color: 'rgba(0,0,0,0.5)' }}>
+            <Text key={label} style={{ fontSize: 10, height: 14, color: theme.textSecondary }}>
               {label}
             </Text>
           ))}
@@ -93,9 +98,9 @@ export function ActivityTab() {
                         height: 12,
                         borderRadius: 3,
                         backgroundColor:
-                          count === 0 ? 'rgba(0,0,0,0.08)' : withAlpha(AccentColor, 0.25 + intensity * 0.6),
+                          count === 0 ? theme.track : withAlpha(accentColor, 0.25 + intensity * 0.6),
                         borderWidth: isToday ? 1 : 0,
-                        borderColor: AccentColor,
+                        borderColor: accentColor,
                       }}
                     />
                   );
@@ -108,7 +113,7 @@ export function ActivityTab() {
 
       <View style={{ height: 8 }} />
       <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 16 }}>
-        <Text style={{ fontSize: 10, color: 'rgba(0,0,0,0.5)' }}>Less</Text>
+        <Text style={{ fontSize: 10, color: theme.textSecondary }}>Less</Text>
         <View style={{ width: 4 }} />
         {[0.15, 0.35, 0.55, 0.85].map((alpha) => (
           <View
@@ -117,21 +122,21 @@ export function ActivityTab() {
               width: 10,
               height: 10,
               borderRadius: 2,
-              backgroundColor: withAlpha(AccentColor, alpha),
+              backgroundColor: withAlpha(accentColor, alpha),
               marginHorizontal: 2,
             }}
           />
         ))}
         <View style={{ width: 4 }} />
-        <Text style={{ fontSize: 10, color: 'rgba(0,0,0,0.5)' }}>More</Text>
+        <Text style={{ fontSize: 10, color: theme.textSecondary }}>More</Text>
       </View>
 
       <View style={{ height: 24 }} />
 
       <View style={{ paddingHorizontal: 16 }}>
-        <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>OVERVIEW</Text>
+        <Text style={{ fontSize: 12, color: theme.textSecondary }}>OVERVIEW</Text>
         <View style={{ height: 8 }} />
-        <View style={{ backgroundColor: '#F7F5F9', borderRadius: 16, paddingHorizontal: 16 }}>
+        <View style={{ backgroundColor: theme.surface, borderRadius: 16, paddingHorizontal: 16 }}>
           <StatRow icon="add-circle" label="Created" value={created} />
           <Divider />
           <StatRow icon="check-circle" label="Completed" value={completed} />
@@ -154,9 +159,10 @@ function StatRow({
   label: string;
   value: number;
 }) {
+  const theme = useThemeColors();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 14 }}>
-      <MaterialIcons name={icon} size={20} color="rgba(0,0,0,0.6)" />
+      <MaterialIcons name={icon} size={20} color={theme.textSecondary} />
       <Text style={{ flex: 1, fontSize: 16 }}>{label}</Text>
       <Text style={{ fontSize: 16 }}>{value}</Text>
     </View>
@@ -164,5 +170,6 @@ function StatRow({
 }
 
 function Divider() {
-  return <View style={{ height: 1, backgroundColor: '#eee' }} />;
+  const theme = useThemeColors();
+  return <View style={{ height: 1, backgroundColor: theme.divider }} />;
 }

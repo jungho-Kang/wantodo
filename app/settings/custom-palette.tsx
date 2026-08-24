@@ -7,10 +7,13 @@
  * 라우트만 네이티브 헤더를 끄고 자체 헤더를 그린다.
  */
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useSettingsStore } from '../../src/store/settingsStore';
+import { useThemeColors } from '../../src/theme/useThemeColors';
+import { useActivePalette } from '../../src/theme/useActivePalette';
 import { SettingsCard, HorizontalDividerInset } from '../../src/components/settings/SettingsComponents';
 import { PickColorBottomSheet } from '../../src/components/settings/PickColorBottomSheet';
 
@@ -19,6 +22,8 @@ const DEFAULT_GRAY = '#9E9E9E';
 
 export default function CustomPaletteScreen() {
   const insets = useSafeAreaInsets();
+  const theme = useThemeColors();
+  const { accentColor: activeAccentColor } = useActivePalette();
   const addCustomPalette = useSettingsStore((s) => s.addCustomPalette);
   const [name, setName] = useState('');
   const [dayColors, setDayColors] = useState<string[]>(Array(7).fill(DEFAULT_GRAY));
@@ -31,19 +36,19 @@ export default function CustomPaletteScreen() {
 
   function handleSave() {
     if (!name.trim()) return;
-    addCustomPalette({ name: name.trim(), colors: dayColors });
+    addCustomPalette({ name: name.trim(), colors: dayColors, accentColor });
     router.back();
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+    <View style={{ flex: 1, backgroundColor: theme.background }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20 }}>
         <Pressable onPress={() => router.back()}>
           <Text style={{ fontSize: 16 }}>Cancel</Text>
         </Pressable>
         <Text style={{ fontSize: 18, fontWeight: 'bold' }}>Custom palette</Text>
         <Pressable onPress={handleSave} disabled={!name.trim()}>
-          <Text style={{ fontSize: 16, fontWeight: '600', color: name.trim() ? '#2F5D50' : '#ccc' }}>Save</Text>
+          <Text style={{ fontSize: 16, fontWeight: '600', color: name.trim() ? activeAccentColor : theme.border }}>Save</Text>
         </Pressable>
       </View>
 
@@ -54,9 +59,10 @@ export default function CustomPaletteScreen() {
               value={name}
               onChangeText={(v) => v.length <= 30 && setName(v)}
               placeholder="e.g. Spring"
-              style={{ borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 10, fontSize: 16 }}
+              placeholderTextColor={theme.textTertiary}
+              style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 8, padding: 10, fontSize: 16, color: theme.text }}
             />
-            <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)', textAlign: 'right', marginTop: 4 }}>
+            <Text style={{ fontSize: 12, color: theme.textSecondary, textAlign: 'right', marginTop: 4 }}>
               {name.length}/30
             </Text>
           </View>

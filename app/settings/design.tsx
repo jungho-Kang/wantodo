@@ -6,6 +6,7 @@ import { ScrollView, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { useSettingsStore } from '../../src/store/settingsStore';
+import { useThemeColors } from '../../src/theme/useThemeColors';
 import { presetPalettes, APP_FONTS } from '../../src/theme/palettes';
 import {
   SettingsCard,
@@ -24,12 +25,13 @@ const APPEARANCE_OPTIONS: { mode: AppearanceMode; label: string }[] = [
 
 export default function DesignScreen() {
   const s = useSettingsStore();
+  const theme = useThemeColors();
   const insets = useSafeAreaInsets();
   const allPalettes = [...presetPalettes, ...s.customPalettes];
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#fff' }}
+      style={{ flex: 1, backgroundColor: theme.background }}
       contentContainerStyle={{ paddingVertical: 8, paddingBottom: insets.bottom + 24 }}
     >
       <SettingsCard title="APPEARANCE">

@@ -7,8 +7,10 @@
  * RN은 ScrollView의 네이티브 snapToInterval + onScroll로 동일하게 재현한다.
  */
 import { useEffect, useRef, useState } from 'react';
-import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, Text, View } from 'react-native';
-import { AccentTeal } from '../../theme/colors';
+import { NativeScrollEvent, NativeSyntheticEvent, ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
+import { useActivePalette } from '../../theme/useActivePalette';
+import { useThemeColors } from '../../theme/useThemeColors';
 
 const TIMER_OPTIONS: (number | null)[] = [null, ...Array.from({ length: 24 }, (_, i) => (i + 1) * 5)];
 
@@ -22,6 +24,8 @@ export function TimerWheelPicker({
   selected: number | null;
   onSelected: (minutes: number | null) => void;
 }) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const scrollRef = useRef<ScrollView>(null);
   const initialIndex = Math.max(0, TIMER_OPTIONS.indexOf(selected));
   const [centeredIndex, setCenteredIndex] = useState(initialIndex);
@@ -72,7 +76,7 @@ export function TimerWheelPicker({
                 style={{
                   fontSize: isCentered ? 24 : 16,
                   fontWeight: isCentered ? 'bold' : 'normal',
-                  color: isCentered ? AccentTeal : 'rgba(0,0,0,0.35)',
+                  color: isCentered ? accentColor : theme.textTertiary,
                 }}
               >
                 {minutes === null ? 'No timer' : `${minutes} min`}

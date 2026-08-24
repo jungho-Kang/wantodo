@@ -12,10 +12,13 @@
  * 요소로만 존재하고 실제 순서변경이 안 되는 문제의 대안으로 추가함
  * (사용자 요청, 2026-08-24). Add note와 Delete 사이에 배치.
  */
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from './Text';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BottomSheet } from './BottomSheet';
-import { DeleteRed, AccentTeal } from '../theme/colors';
+import { DeleteRed } from '../theme/colors';
+import { useActivePalette } from '../theme/useActivePalette';
+import { useThemeColors } from '../theme/useThemeColors';
 
 interface Props {
   visible: boolean;
@@ -96,6 +99,9 @@ function ActionRow({
   tint?: string;
   onPress: () => void;
 }) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
+  const color = tint ?? theme.text;
   return (
     <Pressable
       onPress={onPress}
@@ -107,10 +113,10 @@ function ActionRow({
         paddingVertical: 14,
       }}
     >
-      <MaterialIcons name={icon} size={22} color={tint} />
-      <Text style={{ flex: 1, fontSize: 16, color: tint }}>{label}</Text>
+      <MaterialIcons name={icon} size={22} color={color} />
+      <Text style={{ flex: 1, fontSize: 16, color }}>{label}</Text>
       {showProBadge && (
-        <View style={{ backgroundColor: AccentTeal, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
+        <View style={{ backgroundColor: accentColor, borderRadius: 4, paddingHorizontal: 6, paddingVertical: 2 }}>
           <Text style={{ color: '#fff', fontSize: 12 }}>PRO</Text>
         </View>
       )}

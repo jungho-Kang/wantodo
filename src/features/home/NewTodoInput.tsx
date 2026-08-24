@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
-import { LightSurfaceCard } from '../../theme/colors';
+import { useThemeColors } from '../../theme/useThemeColors';
 
 export function NewTodoInput({
   onSubmit,
@@ -15,6 +15,7 @@ export function NewTodoInput({
   placeholder?: string;
 }) {
   const [text, setText] = useState('');
+  const colors = useThemeColors();
 
   function submit() {
     const trimmed = text.trim();
@@ -30,15 +31,17 @@ export function NewTodoInput({
         value={text}
         onChangeText={setText}
         placeholder={placeholder}
+        placeholderTextColor={colors.textTertiary}
         onSubmitEditing={submit}
         returnKeyType="done"
         style={{
           flex: 1,
-          backgroundColor: LightSurfaceCard,
+          backgroundColor: colors.surface,
           borderRadius: 28,
           paddingHorizontal: 16,
           paddingVertical: 12,
           fontSize: 16,
+          color: colors.text,
         }}
       />
       <Pressable

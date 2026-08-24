@@ -6,9 +6,11 @@
  * 색 선택은 Hex 입력과 Suggestions/From this palette로 이루어진다.
  */
 import { useEffect, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Dimensions, Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text } from '../Text';
 import { BottomSheet } from '../BottomSheet';
-import { AccentTeal } from '../../theme/colors';
+import { useActivePalette } from '../../theme/useActivePalette';
+import { useThemeColors } from '../../theme/useThemeColors';
 
 const MAX_SHEET_HEIGHT = Dimensions.get('window').height * 0.85;
 
@@ -37,6 +39,8 @@ export function PickColorBottomSheet({
   onDone: (color: string) => void;
   onCancel: () => void;
 }) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const [current, setCurrent] = useState(initialColor);
   const [hexText, setHexText] = useState(initialColor.replace('#', '').toUpperCase());
 
@@ -75,14 +79,16 @@ export function PickColorBottomSheet({
             value={hexText}
             onChangeText={handleHexChange}
             autoCapitalize="characters"
+            placeholderTextColor={theme.textTertiary}
             style={{
               flex: 1,
               borderWidth: 1,
-              borderColor: '#ddd',
+              borderColor: theme.border,
               borderRadius: 8,
               padding: 10,
               marginLeft: 8,
               fontSize: 16,
+              color: theme.text,
             }}
           />
         </View>
@@ -90,7 +96,7 @@ export function PickColorBottomSheet({
         {paletteColors.length > 0 && (
           <>
             <View style={{ height: 16 }} />
-            <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>FROM THIS PALETTE</Text>
+            <Text style={{ fontSize: 12, color: theme.textSecondary }}>FROM THIS PALETTE</Text>
             <View style={{ height: 8 }} />
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
               {paletteColors.map((color, i) => (
@@ -101,7 +107,7 @@ export function PickColorBottomSheet({
         )}
 
         <View style={{ height: 16 }} />
-        <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>SUGGESTIONS</Text>
+        <Text style={{ fontSize: 12, color: theme.textSecondary }}>SUGGESTIONS</Text>
         <View style={{ height: 8 }} />
         <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
           {SUGGESTION_COLORS.map((color) => (
@@ -118,7 +124,7 @@ export function PickColorBottomSheet({
               height: 48,
               borderRadius: 8,
               borderWidth: 1,
-              borderColor: '#ccc',
+              borderColor: theme.border,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -131,7 +137,7 @@ export function PickColorBottomSheet({
               flex: 1,
               height: 48,
               borderRadius: 8,
-              backgroundColor: AccentTeal,
+              backgroundColor: accentColor,
               alignItems: 'center',
               justifyContent: 'center',
             }}

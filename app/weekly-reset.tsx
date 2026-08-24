@@ -8,19 +8,28 @@
  * 기록해(WeeklyResetPrefs 대응) leftover 유무와 무관하게 이번 주엔
  * 다시 뜨지 않게 한다.
  */
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { MaterialIcons } from '@expo/vector-icons';
-import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useWeeklyReset, WEEKDAYS } from '../src/features/weeklyreset/useWeeklyReset';
-import * as weeklyResetPrefs from '../src/db/weeklyResetPrefs';
-import { weekDatesFor, todayISODate } from '../src/lib/dates';
-import { AccentTeal, DeleteRed } from '../src/theme/colors';
+import { ActivityIndicator, Pressable, View } from "react-native";
+import { Text } from "../src/components/Text";
+import { MaterialIcons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  useWeeklyReset,
+  WEEKDAYS,
+} from "../src/features/weeklyreset/useWeeklyReset";
+import * as weeklyResetPrefs from "../src/db/weeklyResetPrefs";
+import { weekDatesFor, todayISODate } from "../src/lib/dates";
+import { DeleteRed } from "../src/theme/colors";
+import { useActivePalette } from "../src/theme/useActivePalette";
+import { useThemeColors } from "../src/theme/useThemeColors";
 
 export default function WeeklyResetScreen() {
-  const { weekStart: weekStartParam } = useLocalSearchParams<{ weekStart?: string }>();
+  const { weekStart: weekStartParam } = useLocalSearchParams<{
+    weekStart?: string;
+  }>();
   const weekStart = weekStartParam ?? weekDatesFor(todayISODate())[0];
   const reset = useWeeklyReset(weekStart);
+  const theme = useThemeColors();
 
   async function handleFinished() {
     await weeklyResetPrefs.markProcessed(weekStart);
@@ -28,9 +37,11 @@ export default function WeeklyResetScreen() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
       {reset.isLoading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View
+          style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
+        >
           <ActivityIndicator />
         </View>
       ) : reset.isComplete ? (
@@ -39,7 +50,7 @@ export default function WeeklyResetScreen() {
         <AssignContent
           displayIndex={reset.displayIndex}
           total={reset.total}
-          currentTaskTitle={reset.currentTask?.title ?? ''}
+          currentTaskTitle={reset.currentTask?.title ?? ""}
           canGoBack={reset.canGoBack}
           onAssign={reset.assignToDay}
           onDelete={reset.deleteCurrent}
@@ -67,88 +78,172 @@ function AssignContent({
   onDelete: () => void;
   onGoBack: () => void;
 }) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const progress = total > 0 ? displayIndex / total : 0;
 
   return (
     <View style={{ flex: 1, padding: 24 }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
         <View>
-          <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>NEW WEEK</Text>
-          <Text style={{ fontSize: 24, fontWeight: 'bold' }}>Assign tasks</Text>
+          <Text style={{ fontSize: 12, color: theme.textSecondary }}>
+            NEW WEEK
+          </Text>
+          <Text style={{ fontSize: 24, fontWeight: "bold" }}>Assign tasks</Text>
         </View>
         {canGoBack && (
           <Pressable
             onPress={onGoBack}
-            style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 4 }}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              paddingVertical: 8,
+              paddingHorizontal: 4,
+            }}
           >
-            <MaterialIcons name="arrow-back" size={18} color="rgba(0,0,0,0.6)" />
-            <Text style={{ marginLeft: 4, fontSize: 14, color: 'rgba(0,0,0,0.6)' }}>Back</Text>
+            <MaterialIcons
+              name="arrow-back"
+              size={18}
+              color={theme.textSecondary}
+            />
+            <Text
+              style={{ marginLeft: 4, fontSize: 14, color: theme.textSecondary }}
+            >
+              Back
+            </Text>
           </Pressable>
         )}
       </View>
 
       <View style={{ height: 16 }} />
 
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
         <Text style={{ fontSize: 14 }}>
           {displayIndex} of {total}
         </Text>
-        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.5)' }}>Last Week</Text>
+        <Text style={{ fontSize: 14, color: theme.textSecondary }}>
+          Last Week
+        </Text>
       </View>
       <View style={{ height: 4 }} />
-      <View style={{ height: 4, backgroundColor: '#eee', borderRadius: 2 }}>
-        <View style={{ height: 4, width: `${progress * 100}%`, backgroundColor: AccentTeal, borderRadius: 2 }} />
+      <View style={{ height: 4, backgroundColor: theme.track, borderRadius: 2 }}>
+        <View
+          style={{
+            height: 4,
+            width: `${progress * 100}%`,
+            backgroundColor: accentColor,
+            borderRadius: 2,
+          }}
+        />
       </View>
 
       <View style={{ flex: 1 }} />
 
-      <View style={{ backgroundColor: '#F7F5F9', borderRadius: 16, paddingVertical: 32, alignItems: 'center' }}>
-        <Text style={{ fontSize: 24, fontWeight: 'bold', textAlign: 'center' }}>{currentTaskTitle}</Text>
+      <View
+        style={{
+          backgroundColor: theme.surface,
+          borderRadius: 16,
+          paddingVertical: 32,
+          alignItems: "center",
+        }}
+      >
+        <Text style={{ fontSize: 24, fontWeight: "bold", textAlign: "center" }}>
+          {currentTaskTitle}
+        </Text>
       </View>
 
       <View style={{ flex: 1 }} />
 
-      <View style={{ flexDirection: 'row', gap: 6 }}>
+      <View style={{ flexDirection: "row", gap: 6 }}>
         {WEEKDAYS.map((day) => (
           <Pressable
             key={day.label}
             onPress={() => onAssign(day.offset)}
-            style={{ flex: 1, backgroundColor: '#F7F5F9', borderRadius: 10, paddingVertical: 10, alignItems: 'center' }}
+            style={{
+              flex: 1,
+              backgroundColor: theme.surface,
+              borderRadius: 10,
+              paddingVertical: 10,
+              alignItems: "center",
+            }}
           >
-            <Text style={{ fontSize: 12 }}>{day.label}</Text>
+            <Text style={{ fontSize: 12, fontWeight: "bold" }}>
+              {day.label}
+            </Text>
           </Pressable>
         ))}
       </View>
 
       <View style={{ height: 20 }} />
 
-      <Pressable onPress={onDelete} style={{ flexDirection: 'row', justifyContent: 'center', alignItems: 'center' }}>
+      <Pressable
+        onPress={onDelete}
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
         <MaterialIcons name="delete" size={20} color={DeleteRed} />
-        <Text style={{ marginLeft: 8, fontSize: 16, color: DeleteRed }}>Delete task</Text>
+        <Text style={{ marginLeft: 8, fontSize: 16, color: DeleteRed }}>
+          Delete task
+        </Text>
       </Pressable>
     </View>
   );
 }
 
 function CompletedContent({ onFinished }: { onFinished: () => void }) {
+  const { accentColor } = useActivePalette();
   return (
-    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+    <View
+      style={{
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 24,
+      }}
+    >
       <View
-        style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: AccentTeal, alignItems: 'center', justifyContent: 'center' }}
+        style={{
+          width: 72,
+          height: 72,
+          borderRadius: 36,
+          backgroundColor: accentColor,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
         <MaterialIcons name="check-circle" size={32} color="#fff" />
       </View>
       <View style={{ height: 16 }} />
-      <Text style={{ fontSize: 24, fontWeight: 'bold' }}>All tasks assigned</Text>
+      <Text style={{ fontSize: 24, fontWeight: "bold" }}>
+        All tasks assigned
+      </Text>
       <Text style={{ fontSize: 16, marginTop: 4 }}>Your week is ready!</Text>
 
       <View style={{ height: 32 }} />
 
       <Pressable
         onPress={onFinished}
-        style={{ width: '100%', height: 52, borderRadius: 12, backgroundColor: AccentTeal, alignItems: 'center', justifyContent: 'center' }}
+        style={{
+          width: "100%",
+          height: 52,
+          borderRadius: 12,
+          backgroundColor: accentColor,
+          alignItems: "center",
+          justifyContent: "center",
+        }}
       >
-        <Text style={{ color: '#fff', fontWeight: '600', fontSize: 16 }}>Continue</Text>
+        <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
+          Continue
+        </Text>
       </Pressable>
     </View>
   );

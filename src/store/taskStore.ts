@@ -119,7 +119,7 @@ export const useTaskStore = create<TaskState>((set, get) => ({
 
   toggleCompleted: async (task) => {
     await taskQueries.setCompleted(task.id, !task.isCompleted);
-    await Promise.all([get().refreshSelectedDate(), get().refreshWeek()]);
+    await Promise.all([get().refreshSelectedDate(), get().refreshWeek(), get().loadBacklog()]);
   },
 
   moveToNextDay: async (task) => {

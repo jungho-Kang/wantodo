@@ -4,11 +4,13 @@
  * Weekly reminder / Evening reminder / Anonymous usage statistics.
  */
 import { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Text } from '../../src/components/Text';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSettingsStore } from '../../src/store/settingsStore';
 import { SettingsCard, SettingsToggleRow, HorizontalDividerInset } from '../../src/components/settings/SettingsComponents';
-import { AccentTeal } from '../../src/theme/colors';
+import { useActivePalette } from '../../src/theme/useActivePalette';
+import { useThemeColors } from '../../src/theme/useThemeColors';
 
 const NAME_MAX_LENGTH = 20;
 
@@ -18,6 +20,8 @@ const NAME_MAX_LENGTH = 20;
  * 경우를 대비해 헤더 쪽에도 말줄임 처리를 이중으로 해둔다).
  */
 function NameField({ value, onSave }: { value: string; onSave: (name: string) => void }) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(value);
 
@@ -33,7 +37,7 @@ function NameField({ value, onSave }: { value: string; onSave: (name: string) =>
             setIsEditing(true);
           }}
         >
-          <Text style={{ color: AccentTeal, fontWeight: '600' }}>Modify</Text>
+          <Text style={{ color: accentColor, fontWeight: '600' }}>Modify</Text>
         </Pressable>
       </View>
     );
@@ -47,7 +51,8 @@ function NameField({ value, onSave }: { value: string; onSave: (name: string) =>
           onChangeText={setDraft}
           maxLength={NAME_MAX_LENGTH}
           autoFocus
-          style={{ flex: 1, borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 12, fontSize: 16 }}
+          placeholderTextColor={theme.textTertiary}
+          style={{ flex: 1, borderWidth: 1, borderColor: theme.border, borderRadius: 8, padding: 12, fontSize: 16, color: theme.text }}
         />
         <Pressable
           onPress={() => {
@@ -56,10 +61,10 @@ function NameField({ value, onSave }: { value: string; onSave: (name: string) =>
             setIsEditing(false);
           }}
         >
-          <Text style={{ color: AccentTeal, fontWeight: '600' }}>Save</Text>
+          <Text style={{ color: accentColor, fontWeight: '600' }}>Save</Text>
         </Pressable>
       </View>
-      <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)', textAlign: 'right', marginTop: 4 }}>
+      <Text style={{ fontSize: 12, color: theme.textTertiary, textAlign: 'right', marginTop: 4 }}>
         {draft.length}/{NAME_MAX_LENGTH}
       </Text>
     </View>
@@ -68,16 +73,17 @@ function NameField({ value, onSave }: { value: string; onSave: (name: string) =>
 
 export default function GeneralScreen() {
   const s = useSettingsStore();
+  const theme = useThemeColors();
   const insets = useSafeAreaInsets();
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: '#fff' }}
+      style={{ flex: 1, backgroundColor: theme.background }}
       contentContainerStyle={{ paddingVertical: 8, paddingBottom: insets.bottom + 24 }}
     >
       <SettingsCard>
         <View style={{ padding: 16 }}>
-          <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.5)' }}>Your name</Text>
+          <Text style={{ fontSize: 12, color: theme.textSecondary }}>Your name</Text>
           <View style={{ height: 8 }} />
           <NameField value={s.userName} onSave={s.setUserName} />
         </View>

@@ -11,10 +11,12 @@
  * 판정에 사용한다.
  */
 import { useEffect, useRef } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useDragStore } from '../../store/dragStore';
-import { LightSurfaceCard } from '../../theme/colors';
+import { useThemeColors } from '../../theme/useThemeColors';
+import { useActivePalette } from '../../theme/useActivePalette';
 
 export function HeaderSection({
   greeting,
@@ -35,9 +37,10 @@ export function HeaderSection({
   onSubtitleClick: () => void;
 }) {
   const isDragging = useDragStore((s) => s.isDragging);
+  const colors = useThemeColors();
 
   return (
-    <View style={{ padding: 20, backgroundColor: '#F3F1F5' }}>
+    <View style={{ padding: 20, backgroundColor: colors.background }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
         {isDragging ? (
           <BacklogPill />
@@ -60,8 +63,15 @@ export function HeaderSection({
             {userName}
           </Text>
           <View style={{ height: 4 }} />
-          <Pressable onPress={onSubtitleClick}>
-            <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.6)' }}>{subtitle}</Text>
+          <Pressable
+            onPress={onSubtitleClick}
+            hitSlop={8}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start' }}
+          >
+            <Text style={{ fontSize: 14, color: colors.textSecondary, textDecorationLine: 'underline' }}>
+              {subtitle}
+            </Text>
+            <MaterialIcons name="chevron-right" size={16} color={colors.textTertiary} />
           </Pressable>
         </>
       )}
@@ -75,6 +85,8 @@ function BacklogPill() {
   const clearTarget = useDragStore((s) => s.clearTarget);
   const hoveredTarget = useDragStore((s) => s.hoveredTarget);
   const isHovered = hoveredTarget?.type === 'backlog';
+  const colors = useThemeColors();
+  const { accentColor } = useActivePalette();
 
   const measure = () => {
     viewRef.current?.measureInWindow((x, y, width, height) => {
@@ -95,14 +107,14 @@ function BacklogPill() {
         alignItems: 'center',
         gap: 8,
         borderRadius: 50,
-        backgroundColor: LightSurfaceCard,
+        backgroundColor: colors.surface,
         borderWidth: isHovered ? 2 : 0,
-        borderColor: '#2F5D50',
+        borderColor: accentColor,
         paddingHorizontal: 16,
         paddingVertical: 10,
       }}
     >
-      <MaterialIcons name="inventory-2" size={20} />
+      <MaterialIcons name="inventory-2" size={20} color={colors.text} />
       <Text style={{ fontSize: 16 }}>Backlog</Text>
     </View>
   );
@@ -115,6 +127,7 @@ function HeaderIconButton({
   icon: React.ComponentProps<typeof MaterialIcons>['name'];
   onPress: () => void;
 }) {
+  const colors = useThemeColors();
   return (
     <Pressable
       onPress={onPress}
@@ -122,12 +135,12 @@ function HeaderIconButton({
         width: 40,
         height: 40,
         borderRadius: 12,
-        backgroundColor: LightSurfaceCard,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
       }}
     >
-      <MaterialIcons name={icon} size={22} />
+      <MaterialIcons name={icon} size={22} color={colors.text} />
     </Pressable>
   );
 }

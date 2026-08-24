@@ -7,9 +7,11 @@
  * 구성한다. 실제 원본 Edit 화면 레이아웃이 확인되면 교체할 것.
  */
 import { useEffect, useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Pressable, TextInput, View } from 'react-native';
+import { Text } from './Text';
 import { BottomSheet } from './BottomSheet';
-import { AccentTeal } from '../theme/colors';
+import { useActivePalette } from '../theme/useActivePalette';
+import { useThemeColors } from '../theme/useThemeColors';
 
 interface Props {
   visible: boolean;
@@ -19,6 +21,8 @@ interface Props {
 }
 
 export function EditTitleBottomSheet({ visible, initialTitle, onSave, onDismiss }: Props) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const [title, setTitle] = useState(initialTitle);
 
   useEffect(() => {
@@ -35,10 +39,11 @@ export function EditTitleBottomSheet({ visible, initialTitle, onSave, onDismiss 
           style={{
             marginTop: 16,
             borderWidth: 1,
-            borderColor: '#ddd',
+            borderColor: theme.border,
             borderRadius: 8,
             padding: 12,
             fontSize: 16,
+            color: theme.text,
           }}
         />
         <Pressable
@@ -51,7 +56,7 @@ export function EditTitleBottomSheet({ visible, initialTitle, onSave, onDismiss 
           }}
           style={{
             marginTop: 20,
-            backgroundColor: AccentTeal,
+            backgroundColor: accentColor,
             borderRadius: 8,
             paddingVertical: 14,
             alignItems: 'center',

@@ -6,15 +6,19 @@
  * 코드라서, 보기 좋게 바꾸지 않고 그 표기를 그대로 승계한다.
  */
 import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { ScrollView, View } from 'react-native';
+import { Text } from '../../components/Text';
 import { useFocusEffect } from 'expo-router';
 import * as taskQueries from '../../db/taskQueries';
 import type { Task } from '../../db/schema';
 import { toISODate } from '../../lib/dates';
 import { startOfWeek } from 'date-fns';
-import { AccentColor } from '../../theme/colors';
+import { useActivePalette } from '../../theme/useActivePalette';
+import { useThemeColors } from '../../theme/useThemeColors';
 
 export function ArchiveTab() {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
   const [pastTasks, setPastTasks] = useState<Task[]>([]);
 
   const weekStart = useMemo(() => toISODate(startOfWeek(new Date(), { weekStartsOn: 1 })), []);
@@ -42,7 +46,7 @@ export function ArchiveTab() {
   if (pastTasks.length === 0) {
     return (
       <View style={{ paddingVertical: 48, alignItems: 'center' }}>
-        <Text style={{ fontSize: 14, color: 'rgba(0,0,0,0.5)' }}>No past tasks</Text>
+        <Text style={{ fontSize: 14, color: theme.textSecondary }}>No past tasks</Text>
       </View>
     );
   }
@@ -61,7 +65,7 @@ export function ArchiveTab() {
                   width: 18,
                   height: 18,
                   borderRadius: 4,
-                  backgroundColor: task.isCompleted ? AccentColor : 'transparent',
+                  backgroundColor: task.isCompleted ? accentColor : 'transparent',
                 }}
               />
               <View style={{ width: 12 }} />

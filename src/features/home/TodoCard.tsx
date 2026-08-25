@@ -120,7 +120,7 @@ export function TodoCard({
 
   return (
     <View
-      style={{ width: '100%' }}
+      style={{ width: '100%', overflow: 'hidden' }}
       onLayout={(e) => {
         cardSizeRef.current = { width: e.nativeEvent.layout.width, height: e.nativeEvent.layout.height };
       }}

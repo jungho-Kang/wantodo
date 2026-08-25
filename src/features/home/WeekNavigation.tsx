@@ -113,6 +113,7 @@ function CompactDayTab({
         alignItems: "center",
         justifyContent: "center",
         overflow: "hidden",
+        zIndex: 100,
       }}
     >
       {isActive && (

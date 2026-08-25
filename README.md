@@ -34,9 +34,9 @@ Xcode/Android Studio 없이도 [Expo Go](https://expo.dev/go) 앱만으로
 
 | 화면 | 설명 |
 |---|---|
-| **Home** | Week View / List View 전환, 좌우 스와이프(다음날 이동 / 액션 메뉴), Long-press로 드래그해서 다른 요일·Backlog로 이동 |
+| **Home** | Week View / List View 전환, 좌우 스와이프(다음날 이동 / 액션 메뉴), Long-press로 드래그해서 다른 요일·Backlog로 이동, 요일별 완료/전체 진행도("1/2") 표시 |
 | **Focus Session** | 타이머(휠 피커) + Task 선택 후 순서대로 완료 처리 |
-| **Statistics** | Backlog / Activity(히트맵+통계) / Archive 3개 탭 |
+| **Statistics** | Backlog(완료 체크, 요일 배정, 오른쪽 스와이프로 삭제+확인 Alert) / Activity(히트맵+통계) / Archive 3개 탭 |
 | **Weekly Reset** | 지난주 미완료 Task를 새 요일에 배정 (실수 시 되돌리기 가능) |
 | **Settings** | General, Design(팔레트/폰트/다크모드), Account, Wishlist(빈 상태), Custom palette |
 | Task Action 메뉴 | Top task 지정, Repeat weekly, 캘린더에 일정 추가, Edit, Add note, Move up/down(순서변경), Delete |
@@ -49,7 +49,6 @@ Xcode/Android Studio 없이도 [Expo Go](https://expo.dev/go) 앱만으로
 | 로그인 + 클라우드 동기화 | 실제 OAuth 계정, 기기 간 동기화용 백엔드 서버 필요 |
 | Wishlist 실제 데이터 (기능 요청 게시판) | 여러 사용자 데이터를 모으는 커뮤니티 기능이라 서버 필요 |
 | Changelog / About / Imprint / Privacy / Terms 내용 | 실제 법적·사업자 정보가 있어야 하는 내용이라 임의로 작성하지 않음 |
-| Week Navigation 진행도("n/7") 표시 | 우선순위 낮음 |
 
 ## 시작하기
 

@@ -13,16 +13,19 @@
  * emptyMap()으로 비어있었지만(TODO 미연결), 사용자 요청으로 실제 계산해서
  * 연결함 - 그 날짜에 배정된 Task 기준 완료/전체 개수 (app/index.tsx 참고).
  */
-import { useEffect, useRef } from 'react';
-import { Pressable, View } from 'react-native';
-import { Text } from '../../components/Text';
-import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
-import { format, getDay } from 'date-fns';
-import { useDragStore } from '../../store/dragStore';
-import { fromISODate } from '../../lib/dates';
-import { useActivePalette } from '../../theme/useActivePalette';
-import { useThemeColors } from '../../theme/useThemeColors';
-import { getContrastTextColor } from '../../theme/colors';
+import { useEffect, useRef } from "react";
+import { Pressable, View } from "react-native";
+import { Text } from "../../components/Text";
+import Animated, {
+  useAnimatedStyle,
+  withTiming,
+} from "react-native-reanimated";
+import { format, getDay } from "date-fns";
+import { useDragStore } from "../../store/dragStore";
+import { fromISODate } from "../../lib/dates";
+import { useActivePalette } from "../../theme/useActivePalette";
+import { useThemeColors } from "../../theme/useThemeColors";
+import { getContrastTextColor } from "../../theme/colors";
 
 export type DayProgress = { completed: number; total: number };
 
@@ -53,10 +56,14 @@ export function WeekNavigation({
   }));
 
   return (
-    <Animated.View style={[{ height: '100%' }, widthStyle]}>
+    <Animated.View style={[{ height: "100%" }, widthStyle]}>
       {visibleDates.map((date) =>
         isDragging ? (
-          <ExpandedDayRow key={date} date={date} progress={progressByDate[date]} />
+          <ExpandedDayRow
+            key={date}
+            date={date}
+            progress={progressByDate[date]}
+          />
         ) : (
           <CompactDayTab
             key={date}
@@ -65,7 +72,7 @@ export function WeekNavigation({
             progress={progressByDate[date]}
             onPress={() => onDaySelected(date)}
           />
-        )
+        ),
       )}
     </Animated.View>
   );
@@ -87,7 +94,7 @@ function CompactDayTab({
   const d = fromISODate(date);
   const dow = getDay(d);
   const bgColor = isActive ? colors.surface : dayColorsBySundayIndex[dow];
-  const label = format(d, 'EEE');
+  const label = format(d, "EEE");
 
   // 활성/비활성 모두 세로로 회전된 텍스트로 표시하고, 활성 요일은 배경색(surface)
   // + 점(•) 인디케이터 + 굵은 글씨로만 구분한다 (사용자 피드백: 선택 시 가로로
@@ -99,43 +106,78 @@ function CompactDayTab({
       onPress={onPress}
       style={{
         flex: 1,
-        width: '100%',
+        width: "100%",
         borderTopRightRadius: 12,
         borderBottomRightRadius: 12,
         backgroundColor: bgColor,
-        alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        gap: 4,
+        alignItems: "center",
+        justifyContent: "center",
+        overflow: "hidden",
       }}
     >
       {isActive && (
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-          <View style={{ width: 5, height: 5, borderRadius: 2.5, backgroundColor: textColor }} />
-          {!!progress && progress.total > 0 && (
-            <Text style={{ fontSize: 9, color: textColor, opacity: 0.8 }}>
-              {progress.completed}/{progress.total}
-            </Text>
-          )}
-        </View>
+        <View
+          style={{
+            position: "absolute",
+            left: 8,
+            top: "50%",
+            marginTop: -2.5,
+            width: 5,
+            height: 5,
+            borderRadius: 2.5,
+            backgroundColor: textColor,
+          }}
+        />
       )}
-      <Text
-        style={{ fontSize: 13, fontWeight: isActive ? 'bold' : '600', color: textColor, transform: [{ rotate: '-90deg' }] }}
-        numberOfLines={1}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 6,
+          transform: [{ rotate: "-90deg" }],
+        }}
       >
-        {label}
-      </Text>
+        <Text
+          style={{
+            fontSize: 13,
+            fontWeight: isActive ? "bold" : "600",
+            color: textColor,
+          }}
+          numberOfLines={1}
+        >
+          {label}
+        </Text>
+        {!!progress && progress.total > 0 && (
+          <Text
+            style={{
+              fontSize: 9,
+              color: textColor,
+              opacity: 0.8,
+            }}
+            numberOfLines={1}
+          >
+            ({progress.completed}/{progress.total})
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 }
 
-function ExpandedDayRow({ date, progress }: { date: string; progress?: DayProgress }) {
+function ExpandedDayRow({
+  date,
+  progress,
+}: {
+  date: string;
+  progress?: DayProgress;
+}) {
   const viewRef = useRef<View>(null);
   const registerTarget = useDragStore((s) => s.registerTarget);
   const clearTarget = useDragStore((s) => s.clearTarget);
   const hoveredTarget = useDragStore((s) => s.hoveredTarget);
-  const target = { type: 'day' as const, date };
-  const isHovered = hoveredTarget?.type === 'day' && hoveredTarget.date === date;
+  const target = { type: "day" as const, date };
+  const isHovered =
+    hoveredTarget?.type === "day" && hoveredTarget.date === date;
   const { dayColorsBySundayIndex, accentColor } = useActivePalette();
 
   const d = fromISODate(date);
@@ -159,10 +201,10 @@ function ExpandedDayRow({ date, progress }: { date: string; progress?: DayProgre
       onLayout={measure}
       style={{
         flex: 1,
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
+        width: "100%",
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
         borderTopRightRadius: 12,
         borderBottomRightRadius: 12,
         backgroundColor: bgColor,
@@ -172,7 +214,9 @@ function ExpandedDayRow({ date, progress }: { date: string; progress?: DayProgre
         paddingVertical: 8,
       }}
     >
-      <Text style={{ fontSize: 14, color: textColor }}>{format(d, 'EEEE')}</Text>
+      <Text style={{ fontSize: 14, color: textColor }}>
+        {format(d, "EEEE")}
+      </Text>
       {!!progress && progress.total > 0 && (
         <Text style={{ fontSize: 12, opacity: 0.7, color: textColor }}>
           {progress.completed}/{progress.total}

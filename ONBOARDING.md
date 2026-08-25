@@ -31,8 +31,8 @@ Git은 코드를 내려받고 관리하는 프로그램입니다.
 Node.js는 이 프로젝트(자바스크립트로 만들어진 앱)를 실행하는 데 필요한
 프로그램입니다.
 
-1. https://nodejs.org 접속
-2. **LTS**라고 적힌 버전 다운로드 (LTS = 안정적인 장기 지원 버전, 이걸 받으면 됩니다)
+1. https://nodejs.org/ko/download 접속
+2. **Windows 설치 프로그램(.msi)** 클릭
 3. 다운로드된 설치 파일을 실행
 4. 마찬가지로 옵션 전부 기본값 그대로 두고 "Next" → "Install" → "Finish"
 
@@ -103,6 +103,7 @@ VS Code는 기본적으로 **PowerShell**이라는 터미널을 엽니다. 근�
 적혀 있어서, Git Bash로 바꿔서 쓰는 걸 추천합니다.
 
 두 터미널은 화면에 뜨는 첫 줄 모양으로 구분할 수 있습니다:
+
 - PowerShell: `PS C:\projects>` 처럼 시작
 - Git Bash: `사용자이름@컴퓨터이름 MINGW64 /c/projects` 처럼 시작
 
@@ -138,6 +139,7 @@ git clone https://github.com/jungho-Kang/wantodo.git
 새로 생깁니다.
 
 **그 다음, VS Code에서 이 폴더를 다시 열어주세요**: File > Open Folder
+
 > 방금 새로 생긴 프로젝트 폴더 선택.
 
 ---

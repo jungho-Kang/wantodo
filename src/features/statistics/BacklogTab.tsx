@@ -5,28 +5,38 @@
  * 완료 체크박스 + 요일로 이동은 원본에 확인된 상호작용은 아니지만, Backlog가
  * 완료 처리도 못 하고 요일 배정도 못 하면 사실상 죽은 목록이라 사용자
  * 요청으로 추가함 (Weekly Reset의 요일 배정과 동일한 패턴 재사용).
+ *
+ * 오른쪽 스와이프 삭제도 같은 이유로 사용자 요청 추가 - Home의 TodoCard가
+ * 오른쪽 스와이프를 "다음 날짜로 이동"에 쓰고 있어서, Backlog는 날짜 이동을
+ * 이미 캘린더 아이콘으로 처리하므로 오른쪽 스와이프를 삭제 전용으로 쓴다
+ * (실수로 지우는 걸 막기 위해 Alert 확인 필수).
  */
 import { useCallback, useState } from 'react';
-import { Pressable, ScrollView, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, TextInput, View } from 'react-native';
 import { Text } from '../../components/Text';
 import { useFocusEffect } from 'expo-router';
 import { format } from 'date-fns';
 import { MaterialIcons } from '@expo/vector-icons';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useTaskStore } from '../../store/taskStore';
 import * as taskQueries from '../../db/taskQueries';
 import { fromISODate } from '../../lib/dates';
 import { useActivePalette } from '../../theme/useActivePalette';
 import { useThemeColors } from '../../theme/useThemeColors';
+import { DeleteRed } from '../../theme/colors';
 import type { Task } from '../../db/schema';
 
+const DELETE_COMMIT_THRESHOLD = 96;
+
 export function BacklogTab() {
-  const { accentColor } = useActivePalette();
   const theme = useThemeColors();
   const backlog = useTaskStore((s) => s.backlog);
   const weekDates = useTaskStore((s) => s.weekDates);
   const loadBacklog = useTaskStore((s) => s.loadBacklog);
   const toggleCompleted = useTaskStore((s) => s.toggleCompleted);
   const moveToDate = useTaskStore((s) => s.moveToDate);
+  const deleteTask = useTaskStore((s) => s.deleteTask);
   const [text, setText] = useState('');
   const [movingTaskId, setMovingTaskId] = useState<number | null>(null);
 
@@ -57,6 +67,13 @@ export function BacklogTab() {
     loadBacklog();
   }
 
+  function confirmDelete(task: Task) {
+    Alert.alert('Delete task?', `"${task.title}" will be permanently deleted.`, [
+      { text: 'Cancel', style: 'cancel' },
+      { text: 'Delete', style: 'destructive', onPress: () => deleteTask(task) },
+    ]);
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <View style={{ flex: 1 }}>
@@ -68,68 +85,16 @@ export function BacklogTab() {
         ) : (
           <ScrollView contentContainerStyle={{ padding: 16, gap: 8 }}>
             {backlog.map((task) => (
-              <View
+              <BacklogTaskRow
                 key={task.id}
-                style={{
-                  backgroundColor: theme.surface,
-                  borderRadius: 12,
-                  paddingHorizontal: 16,
-                  paddingVertical: 12,
-                }}
-              >
-                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                  <Pressable onPress={() => toggleCompleted(task)} hitSlop={8}>
-                    <MaterialIcons
-                      name={task.isCompleted ? 'check-box' : 'check-box-outline-blank'}
-                      size={22}
-                      color={task.isCompleted ? accentColor : theme.textSecondary}
-                    />
-                  </Pressable>
-                  <View style={{ width: 12 }} />
-                  <Text
-                    style={{
-                      flex: 1,
-                      fontSize: 16,
-                      textDecorationLine: task.isCompleted ? 'line-through' : 'none',
-                      color: task.isCompleted ? theme.textSecondary : theme.text,
-                    }}
-                  >
-                    {task.title}
-                  </Text>
-                  <Pressable
-                    onPress={() => setMovingTaskId(movingTaskId === task.id ? null : task.id)}
-                    hitSlop={8}
-                  >
-                    <MaterialIcons
-                      name="event"
-                      size={20}
-                      color={movingTaskId === task.id ? accentColor : theme.textTertiary}
-                    />
-                  </Pressable>
-                </View>
-
-                {movingTaskId === task.id && (
-                  <View style={{ flexDirection: 'row', gap: 6, marginTop: 12 }}>
-                    {weekDates.map((date) => (
-                      <Pressable
-                        key={date}
-                        onPress={() => assignToDate(task, date)}
-                        style={{
-                          flex: 1,
-                          backgroundColor: theme.surfaceElevated,
-                          borderRadius: 8,
-                          paddingVertical: 8,
-                          alignItems: 'center',
-                        }}
-                      >
-                        <Text style={{ fontSize: 11 }}>
-                          {format(fromISODate(date), 'EEE').toUpperCase()}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
-              </View>
+                task={task}
+                weekDates={weekDates}
+                isMoving={movingTaskId === task.id}
+                onToggleMoving={() => setMovingTaskId(movingTaskId === task.id ? null : task.id)}
+                onToggleCompleted={() => toggleCompleted(task)}
+                onAssignToDate={(date) => assignToDate(task, date)}
+                onRequestDelete={() => confirmDelete(task)}
+              />
             ))}
           </ScrollView>
         )}
@@ -167,6 +132,132 @@ export function BacklogTab() {
           <MaterialIcons name="add" size={24} color="#fff" />
         </Pressable>
       </View>
+    </View>
+  );
+}
+
+function BacklogTaskRow({
+  task,
+  weekDates,
+  isMoving,
+  onToggleMoving,
+  onToggleCompleted,
+  onAssignToDate,
+  onRequestDelete,
+}: {
+  task: Task;
+  weekDates: string[];
+  isMoving: boolean;
+  onToggleMoving: () => void;
+  onToggleCompleted: () => void;
+  onAssignToDate: (date: string) => void;
+  onRequestDelete: () => void;
+}) {
+  const { accentColor } = useActivePalette();
+  const theme = useThemeColors();
+  const offsetX = useSharedValue(0);
+
+  const swipeGesture = Gesture.Pan()
+    .minDistance(10)
+    .activeOffsetX([-99999, 10])
+    .failOffsetY([-10, 10])
+    .onUpdate((e) => {
+      offsetX.value = Math.max(0, e.translationX);
+    })
+    .onEnd(() => {
+      if (offsetX.value > DELETE_COMMIT_THRESHOLD) {
+        runOnJS(onRequestDelete)();
+      }
+      offsetX.value = withTiming(0, { duration: 150 });
+    });
+
+  const bodyStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: offsetX.value }],
+  }));
+
+  const revealStyle = useAnimatedStyle(() => ({
+    opacity: offsetX.value > 0 ? 1 : 0,
+  }));
+
+  return (
+    <View style={{ borderRadius: 12, overflow: 'hidden' }}>
+      <Animated.View
+        style={[
+          {
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+            borderRadius: 12,
+            backgroundColor: DeleteRed,
+            justifyContent: 'center',
+            paddingLeft: 16,
+          },
+          revealStyle,
+        ]}
+        pointerEvents="none"
+      >
+        <MaterialIcons name="delete" size={22} color="#fff" />
+      </Animated.View>
+
+      <GestureDetector gesture={swipeGesture}>
+        <Animated.View
+          style={[
+            {
+              backgroundColor: theme.surface,
+              borderRadius: 12,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+            },
+            bodyStyle,
+          ]}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+            <Pressable onPress={onToggleCompleted} hitSlop={8}>
+              <MaterialIcons
+                name={task.isCompleted ? 'check-box' : 'check-box-outline-blank'}
+                size={22}
+                color={task.isCompleted ? accentColor : theme.textSecondary}
+              />
+            </Pressable>
+            <View style={{ width: 12 }} />
+            <Text
+              style={{
+                flex: 1,
+                fontSize: 16,
+                textDecorationLine: task.isCompleted ? 'line-through' : 'none',
+                color: task.isCompleted ? theme.textSecondary : theme.text,
+              }}
+            >
+              {task.title}
+            </Text>
+            <Pressable onPress={onToggleMoving} hitSlop={8}>
+              <MaterialIcons name="event" size={20} color={isMoving ? accentColor : theme.textTertiary} />
+            </Pressable>
+          </View>
+
+          {isMoving && (
+            <View style={{ flexDirection: 'row', gap: 6, marginTop: 12 }}>
+              {weekDates.map((date) => (
+                <Pressable
+                  key={date}
+                  onPress={() => onAssignToDate(date)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: theme.surfaceElevated,
+                    borderRadius: 8,
+                    paddingVertical: 8,
+                    alignItems: 'center',
+                  }}
+                >
+                  <Text style={{ fontSize: 11 }}>{format(fromISODate(date), 'EEE').toUpperCase()}</Text>
+                </Pressable>
+              ))}
+            </View>
+          )}
+        </Animated.View>
+      </GestureDetector>
     </View>
   );
 }

@@ -1,54 +1,71 @@
-import { useEffect } from 'react';
-import { Image, StatusBar, View } from 'react-native';
-import { Stack } from 'expo-router';
-import { useFonts } from 'expo-font';
-import * as SplashScreen from 'expo-splash-screen';
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
-import { getDb } from '../src/db/client';
-import { useSettingsStore } from '../src/store/settingsStore';
-import { syncReminderNotifications } from '../src/lib/notifications';
-import { FONTS_TO_LOAD } from '../src/theme/fonts';
-import { useThemeColors } from '../src/theme/useThemeColors';
+import { useFonts } from "expo-font";
+import { Stack } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, useState } from "react";
+import { Image, StatusBar, View } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import { runOnJS } from "react-native-worklets";
+import { getDb } from "../src/db/client";
+import { syncReminderNotifications } from "../src/lib/notifications";
+import { useSettingsStore } from "../src/store/settingsStore";
+import { FONTS_TO_LOAD } from "../src/theme/fonts";
+import { useThemeColors } from "../src/theme/useThemeColors";
 
-const LOADING_BAR_WIDTH = 120;
 const LOADING_BAR_TRACK_WIDTH = 220;
 
 /** 디자인 시안 하단의 가는 선 자리에 실제로 동작하는 로딩 바를 그린다. */
-function LoadingBar() {
+function LoadingBar({
+  appReady,
+  onFillComplete,
+}: {
+  appReady: boolean;
+  onFillComplete: () => void;
+}) {
   const progress = useSharedValue(0);
+  const [barDone, setBarDone] = useState(false);
 
   useEffect(() => {
-    progress.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 900 }),
-        withTiming(0, { duration: 0 })
-      ),
-      -1
-    );
+    progress.value = withTiming(1, { duration: 1200 }, (finished) => {
+      if (finished) runOnJS(setBarDone)(true);
+    });
   }, []);
 
+  useEffect(() => {
+    if (appReady && barDone) {
+      onFillComplete();
+    }
+  }, [appReady, barDone]);
+
   const style = useAnimatedStyle(() => ({
-    transform: [{ translateX: progress.value * (LOADING_BAR_TRACK_WIDTH - LOADING_BAR_WIDTH) }],
+    width: `${progress.value * 100}%`,
   }));
 
   return (
     <View
       style={{
-        position: 'absolute',
-        bottom: '8%',
-        alignSelf: 'center',
+        position: "absolute",
+        bottom: "8%",
+        alignSelf: "center",
         width: LOADING_BAR_TRACK_WIDTH,
         height: 3,
         borderRadius: 2,
-        backgroundColor: 'rgba(240, 236, 220, 0.25)',
-        overflow: 'hidden',
+        backgroundColor: "rgba(240, 236, 220, 0.25)",
+        overflow: "hidden",
       }}
     >
       <Animated.View
         style={[
-          { width: LOADING_BAR_WIDTH, height: 3, borderRadius: 2, backgroundColor: '#F0ECDC' },
+          {
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: "#F0ECDC",
+          },
           style,
         ]}
       />
@@ -65,15 +82,21 @@ function LoadingBar() {
  * 실제 화면으로 전환). 디자인 시안의 하단 선 자리에는 실제로 움직이는
  * 로딩 바를 겹쳐 그린다.
  */
-function CustomSplash() {
+function CustomSplash({
+  appReady,
+  onFinish,
+}: {
+  appReady: boolean;
+  onFinish: () => void;
+}) {
   return (
     <View style={{ flex: 1 }}>
       <Image
-        source={require('../assets/splash-screen.png')}
-        style={{ width: '100%', height: '100%' }}
+        source={require("../assets/splash-screen.png")}
+        style={{ width: "100%", height: "100%" }}
         resizeMode="cover"
       />
-      <LoadingBar />
+      <LoadingBar appReady={appReady} onFillComplete={onFinish} />
     </View>
   );
 }
@@ -82,14 +105,21 @@ function CustomSplash() {
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const weeklyReminderEnabled = useSettingsStore((s) => s.weeklyReminderEnabled);
-  const eveningReminderEnabled = useSettingsStore((s) => s.eveningReminderEnabled);
+  const weeklyReminderEnabled = useSettingsStore(
+    (s) => s.weeklyReminderEnabled,
+  );
+  const eveningReminderEnabled = useSettingsStore(
+    (s) => s.eveningReminderEnabled,
+  );
   const { isDark, background } = useThemeColors();
   const [fontsLoaded] = useFonts(FONTS_TO_LOAD);
+  const [dbReady, setDbReady] = useState(false);
+  const [splashFinished, setSplashFinished] = useState(false);
 
   useEffect(() => {
     // Room(AppDatabase.kt) 대응: 앱 시작 시 SQLite 테이블을 보장한다.
     getDb();
+    setDbReady(true);
   }, []);
 
   // 네이티브 스플래시는 CustomSplash가 첫 프레임을 그릴 기회를 준 뒤 곧바로
@@ -108,22 +138,46 @@ export default function RootLayout() {
   // Settings > General 토글이 바뀔 때마다(+ 영속화 복원 후 최초 1회) 실제
   // 예약된 알림과 동기화한다.
   useEffect(() => {
-    syncReminderNotifications({ weeklyReminderEnabled, eveningReminderEnabled });
+    syncReminderNotifications({
+      weeklyReminderEnabled,
+      eveningReminderEnabled,
+    });
   }, [weeklyReminderEnabled, eveningReminderEnabled]);
 
-  if (!fontsLoaded) {
-    return <CustomSplash />;
+  const appReady = fontsLoaded && dbReady;
+
+  if (!splashFinished) {
+    return (
+      <CustomSplash
+        appReady={appReady}
+        onFinish={() => setSplashFinished(true)}
+      />
+    );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} backgroundColor={background} />
-        <Stack screenOptions={{ contentStyle: { backgroundColor: background } }}>
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={background}
+        />
+        <Stack
+          screenOptions={{ contentStyle: { backgroundColor: background } }}
+        >
           <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="focus" options={{ presentation: 'fullScreenModal', headerShown: false }} />
-          <Stack.Screen name="statistics" options={{ presentation: 'modal', headerShown: false }} />
-          <Stack.Screen name="weekly-reset" options={{ presentation: 'fullScreenModal', headerShown: false }} />
+          <Stack.Screen
+            name="focus"
+            options={{ presentation: "fullScreenModal", headerShown: false }}
+          />
+          <Stack.Screen
+            name="statistics"
+            options={{ presentation: "modal", headerShown: false }}
+          />
+          <Stack.Screen
+            name="weekly-reset"
+            options={{ presentation: "fullScreenModal", headerShown: false }}
+          />
           <Stack.Screen name="settings" options={{ headerShown: false }} />
         </Stack>
       </SafeAreaProvider>
